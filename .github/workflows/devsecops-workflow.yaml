@@ -19,9 +19,8 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         args: >
-          -Dsonar.organization=my-dotnet-github-org
-          -Dsonar.projectKey=my-dotnet-github-org_dotnetgithubactionsorg
-          -Dsonar.branch.name=ma
+          -Dsonar.organization=nodejs12
+          -Dsonar.projectKey=nodejs12_nodejskey
           
   security:
     runs-on: ubuntu-latest
