@@ -21,6 +21,7 @@ jobs:
         args: >
           -Dsonar.organization=nodejs12
           -Dsonar.projectKey=nodejs12_nodejskey
+          -Dsonar.branch.name=master
           
   security:
     runs-on: ubuntu-latest
