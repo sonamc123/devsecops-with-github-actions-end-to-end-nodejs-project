@@ -21,7 +21,7 @@ jobs:
         args: >
           -Dsonar.organization=my-dotnet-github-org
           -Dsonar.projectKey=my-dotnet-github-org_dotnetgithubactionsorg
-          -Dsonar.branch.name=main
+          -Dsonar.branch.name=ma
           
   security:
     runs-on: ubuntu-latest
