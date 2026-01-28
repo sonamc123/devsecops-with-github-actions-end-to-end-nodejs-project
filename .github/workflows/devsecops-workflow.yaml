@@ -1,51 +1,70 @@
-name: Build code, run unit test, run SAST, SCA, DAST security scans for NodeJs App
-on: push
+name: Build code, test & security scans for NodeJS App
+
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    name: Run unit tests and SAST scan on the source code 
+    name: Build & SAST (SonarQube)
+    runs-on: self-hosted
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 21
-        cache: npm
-    - run: npm install
-    - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.organization=nodejs12
-          -Dsonar.projectKey=nodejs12_nodejskey
-          -Dsonar.branch.name=master
-          
-  security:
-    runs-on: ubuntu-latest
-    needs: build
-    name: Run the SCA scan on the source code
-    steps:
-      - uses: actions/checkout@master
-      - name: RunSnyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-  zap_scan:
-    runs-on: ubuntu-latest
-    needs: security
-    name: Run DAST scan on the web application
-    steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
         with:
-          ref: main
-      - name: ZAP Scan
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 21
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run unit tests
+        run: npm test
+       # continue-on-error: true   # <-- IGNORE FAILURES HERE
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v5.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: http://localhost:9000
+
+  security:
+    name: SCA (Snyk)
+    runs-on: self-hosted
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Snyk Dependency Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+  zap_scan:
+    name: DAST (OWASP ZAP)
+    runs-on: self-hosted
+    needs: security
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start application
+        run: |
+          npm install
+          npm start &
+          sleep 20
+
+      - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
-          target: 'http://example.com/'
-          rules_file_name: '.zap/rules.tsv'
+          target: 'http://localhost:3000'
           cmd_options: '-a'
