@@ -27,7 +27,11 @@ jobs:
 
       - name: Run unit tests
         run: npm test
+<<<<<<< HEAD
        # continue-on-error: true   # <-- IGNORE FAILURES HERE
+=======
+        continue-on-error: true   # <-- IGNORE FAILURES HERE
+>>>>>>> b881b5040997727646d3a2a0fa2592f6eee00a69
 
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v5.0.0
@@ -67,4 +71,8 @@ jobs:
         uses: zaproxy/action-baseline@v0.14.0
         with:
           target: 'http://localhost:3000'
+<<<<<<< HEAD
           cmd_options: '-a'
+=======
+          cmd_options: '-a'
+>>>>>>> b881b5040997727646d3a2a0fa2592f6eee00a69
